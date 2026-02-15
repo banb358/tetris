@@ -1,0 +1,18 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Node (if used)
+node_modules/
+npm-debug.log*
+
+# Gemini/Antigravity
+.gemini/
+brain/
+task.md
+implementation_plan.md
+walkthrough.md
