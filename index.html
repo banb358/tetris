@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cyber Tetris</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -20,17 +20,19 @@
         </div>
 
         <div class="game-wrapper">
+            <!-- Left Panel -->
             <div class="side-panel left">
-                <div class="panel-box score-box">
+                <div class="panel-box">
                     <h2>SCORE</h2>
                     <div id="score">0</div>
                 </div>
-                <div class="panel-box level-box">
+                <div class="panel-box">
                     <h2>LEVEL</h2>
                     <div id="level">1</div>
                 </div>
             </div>
 
+            <!-- Main Game Area -->
             <div class="main-canvas">
                 <canvas id="tetris" width="240" height="400"></canvas>
                 <div id="game-over" class="overlay hidden">
@@ -41,12 +43,13 @@
                 </div>
             </div>
 
+            <!-- Right Panel -->
             <div class="side-panel right">
-                <div class="panel-box next-box">
+                <div class="panel-box">
                     <h2>NEXT</h2>
                     <canvas id="next" width="100" height="100"></canvas>
                 </div>
-                <div class="panel-box lines-box">
+                <div class="panel-box">
                     <h2>LINES</h2>
                     <div id="lines">0</div>
                 </div>
