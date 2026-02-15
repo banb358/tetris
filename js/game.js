@@ -1,4 +1,11 @@
 class Game {
+    moves = {
+        [KEY.LEFT]: p => ({ ...p, x: p.x - 1 }),
+        [KEY.RIGHT]: p => ({ ...p, x: p.x + 1 }),
+        [KEY.DOWN]: p => ({ ...p, y: p.y + 1 }),
+        [KEY.SPACE]: p => ({ ...p, y: p.y + 1 })
+    };
+
     constructor(canvas, nextCanvas) {
         this.canvas = canvas;
         this.nextCanvas = nextCanvas;
@@ -95,19 +102,18 @@ class Game {
             this.updateUI();
         };
 
-        document.getElementById('btn-left').addEventListener('click', (e) => { e.preventDefault(); handleMove(KEY.LEFT); });
-        document.getElementById('btn-right').addEventListener('click', (e) => { e.preventDefault(); handleMove(KEY.RIGHT); });
-        document.getElementById('btn-down').addEventListener('click', (e) => { e.preventDefault(); handleMove(KEY.DOWN); });
-        document.getElementById('btn-rotate').addEventListener('click', (e) => { e.preventDefault(); handleRotate(); });
-        document.getElementById('btn-hard-drop').addEventListener('click', (e) => { e.preventDefault(); handleHardDrop(); });
-    }
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        const btnDown = document.getElementById('btn-down');
+        const btnRotate = document.getElementById('btn-rotate');
+        const btnHardDrop = document.getElementById('btn-hard-drop');
 
-    moves = {
-        [KEY.LEFT]: p => ({ ...p, x: p.x - 1 }),
-        [KEY.RIGHT]: p => ({ ...p, x: p.x + 1 }),
-        [KEY.DOWN]: p => ({ ...p, y: p.y + 1 }),
-        [KEY.SPACE]: p => ({ ...p, y: p.y + 1 })
-    };
+        if (btnLeft) btnLeft.addEventListener('click', (e) => { e.preventDefault(); handleMove(KEY.LEFT); });
+        if (btnRight) btnRight.addEventListener('click', (e) => { e.preventDefault(); handleMove(KEY.RIGHT); });
+        if (btnDown) btnDown.addEventListener('click', (e) => { e.preventDefault(); handleMove(KEY.DOWN); });
+        if (btnRotate) btnRotate.addEventListener('click', (e) => { e.preventDefault(); handleRotate(); });
+        if (btnHardDrop) btnHardDrop.addEventListener('click', (e) => { e.preventDefault(); handleHardDrop(); });
+    }
 
     reset() {
         this.score = 0;
@@ -162,15 +168,19 @@ class Game {
     }
 
     updateUI() {
-        document.getElementById('score').innerText = this.score;
-        document.getElementById('level').innerText = this.level;
-        document.getElementById('lines').innerText = this.lines;
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const linesEl = document.getElementById('lines');
+        if (scoreEl) scoreEl.innerText = this.score;
+        if (levelEl) levelEl.innerText = this.level;
+        if (linesEl) linesEl.innerText = this.lines;
     }
 
     gameOver() {
         cancelAnimationFrame(this.requestId);
         this.requestId = null;
-        document.getElementById('game-over').classList.remove('hidden');
+        const gameOverEl = document.getElementById('game-over');
+        if (gameOverEl) gameOverEl.classList.remove('hidden');
     }
 
     pause() {

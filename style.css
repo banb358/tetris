@@ -160,7 +160,8 @@ body {
 
 /* Mobile Controls */
 .mobile-controls {
-    display: none;
+    display: flex;
+    /* Always show for now to satisfy user's "no buttons" complaint */
     flex-direction: column;
     align-items: center;
     gap: 10px;
@@ -258,10 +259,6 @@ body {
 
     .pc-only {
         display: none !important;
-    }
-
-    .mobile-controls {
-        display: flex;
     }
 
     .main-canvas canvas {
