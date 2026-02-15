@@ -42,23 +42,26 @@ class Game {
         if (!this.audioCtx) {
             this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
+        if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+        }
     }
 
     playBGM() {
-        if (!this.audioCtx) this.initAudio();
+        this.initAudio();
         if (this.bgmOscillator) return;
 
+        // BGM logic
         this.bgmGain = this.audioCtx.createGain();
         this.bgmGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
-        this.bgmGain.gain.linearRampToValueAtTime(0.02, this.audioCtx.currentTime + 2);
+        this.bgmGain.gain.linearRampToValueAtTime(0.05, this.audioCtx.currentTime + 1); // Increased slightly
         this.bgmGain.connect(this.audioCtx.destination);
 
-        // Simple Low Sine Wave for Ambient
+        // Simple Cyber Drone
         const osc = this.audioCtx.createOscillator();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(55, this.audioCtx.currentTime); // A1
+        osc.frequency.setValueAtTime(55, this.audioCtx.currentTime);
 
-        // Add a bit of movement
         const lfo = this.audioCtx.createOscillator();
         lfo.type = 'sine';
         lfo.frequency.setValueAtTime(0.5, this.audioCtx.currentTime);
@@ -71,21 +74,22 @@ class Game {
         osc.start();
         lfo.start();
         this.bgmOscillator = osc;
+        console.log('BGM Started');
     }
 
     stopBGM() {
         if (this.bgmGain) {
             this.bgmGain.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 0.5);
+            const currentOsc = this.bgmOscillator;
+            this.bgmOscillator = null;
             setTimeout(() => {
-                if (this.bgmOscillator) {
-                    this.bgmOscillator.stop();
-                    this.bgmOscillator = null;
-                }
+                if (currentOsc) currentOsc.stop();
             }, 500);
         }
     }
 
     playSE(type) {
+        this.initAudio();
         if (!this.audioCtx) return;
 
         const oscillator = this.audioCtx.createOscillator();
