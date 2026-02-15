@@ -55,7 +55,7 @@ class Game {
 
         this.bgmGain = this.audioCtx.createGain();
         this.bgmGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
-        this.bgmGain.gain.linearRampToValueAtTime(0.1, this.audioCtx.currentTime + 0.5); // 音量をSEに近づける
+        this.bgmGain.gain.linearRampToValueAtTime(0.5, this.audioCtx.currentTime + 0.5); // 音量を最大限に引き上げ
         this.bgmGain.connect(this.audioCtx.destination);
 
         const notes = [
@@ -86,7 +86,7 @@ class Game {
             osc.type = 'square'; // はっきり聞こえる音色
             osc.frequency.setValueAtTime(note.f, time);
 
-            g.gain.setValueAtTime(0.2, time); // 個別の音量
+            g.gain.setValueAtTime(0.4, time); // 個別の音量も大幅に引き上げ
             g.gain.exponentialRampToValueAtTime(0.01, time + (note.d / 1000) * 0.9);
 
             osc.connect(g);
@@ -106,7 +106,7 @@ class Game {
         this.bgmPlaying = true;
         this.bgmStep = 0;
         scheduler();
-        console.log('Tetris Main BGM Started');
+        console.log('Tetris Main BGM Started (Max Volume Mode)');
     }
 
     stopBGM() {
@@ -139,7 +139,7 @@ class Game {
                 oscillator.type = 'square';
                 oscillator.frequency.setValueAtTime(150, now);
                 oscillator.frequency.exponentialRampToValueAtTime(50, now + 0.1);
-                gainNode.gain.setValueAtTime(0.05, now);
+                gainNode.gain.setValueAtTime(0.4, now); // 0.05 -> 0.4
                 gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
                 oscillator.start(now);
                 oscillator.stop(now + 0.1);
@@ -148,16 +148,16 @@ class Game {
                 oscillator.type = 'triangle';
                 oscillator.frequency.setValueAtTime(300, now);
                 oscillator.frequency.exponentialRampToValueAtTime(600, now + 0.1);
-                gainNode.gain.setValueAtTime(0.05, now);
+                gainNode.gain.setValueAtTime(0.4, now); // 0.05 -> 0.4
                 gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
                 oscillator.start(now);
                 oscillator.stop(now + 0.1);
                 break;
             case 'clear':
-                oscillator.type = 'sine';
+                oscillator.type = 'square';
                 oscillator.frequency.setValueAtTime(440, now);
                 oscillator.frequency.exponentialRampToValueAtTime(880, now + 0.2);
-                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.setValueAtTime(0.5, now); // 0.1 -> 0.5
                 gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
                 oscillator.start(now);
                 oscillator.stop(now + 0.2);
@@ -166,10 +166,19 @@ class Game {
                 oscillator.type = 'sawtooth';
                 oscillator.frequency.setValueAtTime(200, now);
                 oscillator.frequency.exponentialRampToValueAtTime(50, now + 0.5);
-                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.setValueAtTime(0.5, now); // 0.1 -> 0.5
                 gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
                 oscillator.start(now);
                 oscillator.stop(now + 0.5);
+                break;
+            case 'start':
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(440, now);
+                oscillator.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+                gainNode.gain.setValueAtTime(0.5, now); // 0.2 -> 0.5
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
                 break;
         }
     }
@@ -211,6 +220,8 @@ class Game {
         const startBtn = document.getElementById('start-btn');
         if (startBtn) {
             startBtn.addEventListener('click', () => {
+                this.initAudio(); // 確実に有効化
+                this.playSE('start');
                 this.playBGM();
                 this.play();
                 document.getElementById('start-screen').classList.add('hidden');
@@ -220,6 +231,8 @@ class Game {
         const restartBtn = document.getElementById('restart-btn');
         if (restartBtn) {
             restartBtn.addEventListener('click', () => {
+                this.initAudio(); // 確実に有効化
+                this.playSE('start');
                 this.playBGM();
                 this.play();
                 document.getElementById('game-over').classList.add('hidden');
