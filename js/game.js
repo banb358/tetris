@@ -18,6 +18,8 @@ class Game {
 
         // Sound System (Web Audio API)
         this.audioCtx = null;
+        this.bgmOscillator = null;
+        this.bgmGain = null;
 
         this.init();
     }
@@ -39,6 +41,47 @@ class Game {
     initAudio() {
         if (!this.audioCtx) {
             this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    playBGM() {
+        if (!this.audioCtx) this.initAudio();
+        if (this.bgmOscillator) return;
+
+        this.bgmGain = this.audioCtx.createGain();
+        this.bgmGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
+        this.bgmGain.gain.linearRampToValueAtTime(0.02, this.audioCtx.currentTime + 2);
+        this.bgmGain.connect(this.audioCtx.destination);
+
+        // Simple Low Sine Wave for Ambient
+        const osc = this.audioCtx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(55, this.audioCtx.currentTime); // A1
+
+        // Add a bit of movement
+        const lfo = this.audioCtx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.setValueAtTime(0.5, this.audioCtx.currentTime);
+        const lfoGain = this.audioCtx.createGain();
+        lfoGain.gain.setValueAtTime(2, this.audioCtx.currentTime);
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+
+        osc.connect(this.bgmGain);
+        osc.start();
+        lfo.start();
+        this.bgmOscillator = osc;
+    }
+
+    stopBGM() {
+        if (this.bgmGain) {
+            this.bgmGain.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 0.5);
+            setTimeout(() => {
+                if (this.bgmOscillator) {
+                    this.bgmOscillator.stop();
+                    this.bgmOscillator = null;
+                }
+            }, 500);
         }
     }
 
@@ -93,6 +136,15 @@ class Game {
     }
 
     addEventListeners() {
+        // Start BGM on first interaction
+        const startMusic = () => {
+            this.playBGM();
+            document.removeEventListener('click', startMusic);
+            document.removeEventListener('keydown', startMusic);
+        };
+        document.addEventListener('click', startMusic);
+        document.addEventListener('keydown', startMusic);
+
         document.addEventListener('keydown', event => {
             if (event.keyCode === 27) { // ESC to pause
                 this.pause();
@@ -128,7 +180,7 @@ class Game {
         const startBtn = document.getElementById('start-btn');
         if (startBtn) {
             startBtn.addEventListener('click', () => {
-                this.initAudio();
+                this.stopBGM();
                 this.play();
                 document.getElementById('start-screen').classList.add('hidden');
             });
