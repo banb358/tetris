@@ -35,7 +35,7 @@ class Game {
         this.ctx.scale(BLOCK_SIZE, BLOCK_SIZE);
 
         this.board = new Board(this.ctx, this.ctxNext);
-        this.time = { start: 0, elapsed: 0, level: 1500 }; // 初期スピードを 1.5秒に緩和
+        this.time = { start: 0, elapsed: 0, level: 1000 }; // スピードを標準的な 1秒に戻す
 
         this.addEventListeners();
     }
@@ -363,11 +363,11 @@ class Game {
 
         this.lines += lines;
         this.level = Math.floor(this.lines / 5) + 1; // 5ラインごとにレベルアップ
-        this.time.level = Math.max(200, 1500 - (this.level - 1) * 200); // 速度の変化をより緩やかに
+        this.time.level = Math.max(100, 1000 - (this.level - 1) * 100); // 速度を標準的な変化に戻す
         this.updateUI();
 
-        // Game Clear Condition: Level 3 (合計10ラインでクリア)
-        if (this.level >= 3) {
+        // Game Clear Condition: Level 2 (たった5ラインでクリア！)
+        if (this.level >= 2) {
             this.gameWin();
         }
     }
