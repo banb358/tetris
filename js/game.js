@@ -18,9 +18,10 @@ class Game {
 
         // Sound System (Web Audio API)
         this.audioCtx = null;
-        this.bgmOscillator = null;
         this.bgmGain = null;
-        this.bgmInterval = null;
+        this.bgmPlaying = false;
+        this.bgmStep = 0;
+        this.bgmTimer = null;
 
         this.init();
     }
@@ -50,59 +51,70 @@ class Game {
 
     playBGM() {
         this.initAudio();
-        if (this.bgmOscillator) this.stopBGM();
+        if (this.bgmPlaying) this.stopBGM();
 
         this.bgmGain = this.audioCtx.createGain();
         this.bgmGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
-        this.bgmGain.gain.linearRampToValueAtTime(0.04, this.audioCtx.currentTime + 1);
+        this.bgmGain.gain.linearRampToValueAtTime(0.12, this.audioCtx.currentTime + 1); // Louder
         this.bgmGain.connect(this.audioCtx.destination);
 
-        const playNote = (freq, time, duration) => {
+        const notes = [
+            { f: 329.63, d: 400 }, // E4
+            { f: 246.94, d: 200 }, // B3
+            { f: 261.63, d: 200 }, // C4
+            { f: 293.66, d: 400 }, // D4
+            { f: 261.63, d: 200 }, // C4
+            { f: 246.94, d: 200 }, // B3
+            { f: 220.00, d: 400 }, // A3
+            { f: 220.00, d: 200 }, // A3
+            { f: 261.63, d: 200 }, // C4
+            { f: 329.63, d: 400 }, // E4
+            { f: 293.66, d: 200 }, // D4
+            { f: 261.63, d: 200 }, // C4
+            { f: 246.94, d: 600 }, // B3
+            { f: 261.63, d: 200 }, // C4
+            { f: 293.66, d: 400 }, // D4
+            { f: 329.63, d: 400 }, // E4
+            { f: 261.63, d: 400 }, // C4
+            { f: 220.00, d: 400 }, // A3
+            { f: 220.00, d: 400 }, // A3
+        ];
+
+        const playNote = (note, time) => {
             const osc = this.audioCtx.createOscillator();
             const g = this.audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(freq, time);
-
-            const filter = this.audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(400, time);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(note.f, time);
 
             g.gain.setValueAtTime(0.3, time);
-            g.gain.exponentialRampToValueAtTime(0.001, time + duration);
+            g.gain.exponentialRampToValueAtTime(0.01, time + (note.d / 1000) * 0.9);
 
-            osc.connect(filter);
-            filter.connect(g);
+            osc.connect(g);
             g.connect(this.bgmGain);
-
             osc.start(time);
-            osc.stop(time + duration);
+            osc.stop(time + (note.d / 1000));
         };
 
-        const sequence = () => {
-            const now = this.audioCtx.currentTime;
-            const tempo = 0.5;
-            for (let i = 0; i < 8; i++) {
-                const time = now + i * tempo;
-                const freq = (i % 4 === 0) ? 55 : 110;
-                playNote(freq, time, tempo * 0.8);
-            }
+        const scheduler = () => {
+            if (!this.bgmPlaying) return;
+            const note = notes[this.bgmStep % notes.length];
+            playNote(note, this.audioCtx.currentTime + 0.05);
+            this.bgmTimer = setTimeout(scheduler, note.d);
+            this.bgmStep++;
         };
 
-        sequence();
-        this.bgmInterval = setInterval(sequence, 4000);
-        this.bgmOscillator = true;
-        console.log('Game BGM Started');
+        this.bgmPlaying = true;
+        this.bgmStep = 0;
+        scheduler();
+        console.log('--- MUSIC START ---');
     }
 
     stopBGM() {
-        if (this.bgmInterval) {
-            clearInterval(this.bgmInterval);
-            this.bgmInterval = null;
-        }
+        this.bgmPlaying = false;
+        if (this.bgmTimer) clearTimeout(this.bgmTimer);
         if (this.bgmGain) {
             this.bgmGain.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 0.5);
         }
-        this.bgmOscillator = false;
     }
 
     playSE(type) {
@@ -202,7 +214,7 @@ class Game {
         const restartBtn = document.getElementById('restart-btn');
         if (restartBtn) {
             restartBtn.addEventListener('click', () => {
-                this.reset();
+                this.playBGM();
                 this.play();
                 document.getElementById('game-over').classList.add('hidden');
             });
