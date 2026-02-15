@@ -117,18 +117,14 @@ class Board {
 
     clearLines() {
         let lines = 0;
-        this.grid.forEach((row, y) => {
-            if (row.every(value => value > 0)) {
+        for (let y = ROWS - 1; y >= 0; y--) {
+            if (this.grid[y].every(value => value > 0)) {
                 lines++;
                 this.grid.splice(y, 1);
                 this.grid.unshift(Array(COLS).fill(0));
+                y++; // Re-check the same index since a new row shifted down
             }
-        });
-
-        if (lines > 0) {
-            // This will be used in Game class to update score
-            return lines;
         }
-        return 0;
+        return lines;
     }
 }

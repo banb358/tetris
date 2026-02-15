@@ -296,6 +296,13 @@ class Game {
                 this.score += POINTS.HARD_DROP;
                 p = this.moves[KEY.DOWN](this.board.piece);
             }
+            // Land immediately
+            this.board.drop();
+            const clearedLines = this.board.clearLines();
+            if (clearedLines > 0) {
+                this.playSE('clear');
+                this.updateScore(clearedLines);
+            }
             this.playSE('move');
             this.draw();
             this.updateUI();
@@ -330,6 +337,8 @@ class Game {
     }
 
     animate(now = 0) {
+        if (!this.requestId && now !== 0) return; // すでに停止している場合は何もしない
+
         this.time.elapsed = now - this.time.start;
         if (this.time.elapsed > this.time.level) {
             this.time.start = now;
@@ -345,8 +354,10 @@ class Game {
             }
         }
 
-        this.draw();
-        this.requestId = requestAnimationFrame(this.animate.bind(this));
+        if (this.requestId !== null) {
+            this.draw();
+            this.requestId = requestAnimationFrame(this.animate.bind(this));
+        }
     }
 
     draw() {
