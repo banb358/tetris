@@ -373,14 +373,17 @@ class Game {
         if (lines === 4) this.score += POINTS.TETRIS;
 
         this.lines += lines;
-        this.level = Math.floor(this.lines / 5) + 1; // 5ラインごとにレベルアップ
-        this.time.level = Math.max(100, 1000 - (this.level - 1) * 100); // 速度を標準的な変化に戻す
-        this.updateUI();
 
         // Game Clear Condition: 5ライン消去でクリア！
         if (this.lines >= 5) {
+            this.updateUI(); // 最終スコアを反映
             this.gameWin();
+            return;
         }
+
+        this.level = Math.floor(this.lines / 5) + 1;
+        this.time.level = Math.max(100, 1000 - (this.level - 1) * 100);
+        this.updateUI();
     }
 
     updateUI() {
