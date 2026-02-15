@@ -106,7 +106,7 @@ class Game {
         this.bgmPlaying = true;
         this.bgmStep = 0;
         scheduler();
-        console.log('Tetris Main BGM Started (Max Volume Mode)');
+        console.log('TETRA PUZZLE Main BGM Started (Max Volume Mode)');
     }
 
     stopBGM() {
