@@ -55,7 +55,7 @@ class Game {
 
         this.bgmGain = this.audioCtx.createGain();
         this.bgmGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
-        this.bgmGain.gain.linearRampToValueAtTime(0.12, this.audioCtx.currentTime + 1); // Louder
+        this.bgmGain.gain.linearRampToValueAtTime(0.1, this.audioCtx.currentTime + 0.5); // 音量をSEに近づける
         this.bgmGain.connect(this.audioCtx.destination);
 
         const notes = [
@@ -83,10 +83,10 @@ class Game {
         const playNote = (note, time) => {
             const osc = this.audioCtx.createOscillator();
             const g = this.audioCtx.createGain();
-            osc.type = 'triangle';
+            osc.type = 'square'; // はっきり聞こえる音色
             osc.frequency.setValueAtTime(note.f, time);
 
-            g.gain.setValueAtTime(0.3, time);
+            g.gain.setValueAtTime(0.2, time); // 個別の音量
             g.gain.exponentialRampToValueAtTime(0.01, time + (note.d / 1000) * 0.9);
 
             osc.connect(g);
@@ -106,14 +106,20 @@ class Game {
         this.bgmPlaying = true;
         this.bgmStep = 0;
         scheduler();
-        console.log('--- MUSIC START ---');
+        console.log('Tetris Main BGM Started');
     }
 
     stopBGM() {
         this.bgmPlaying = false;
-        if (this.bgmTimer) clearTimeout(this.bgmTimer);
+        if (this.bgmTimer) {
+            clearTimeout(this.bgmTimer);
+            this.bgmTimer = null;
+        }
         if (this.bgmGain) {
-            this.bgmGain.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 0.5);
+            this.bgmGain.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 0.2);
+            const g = this.bgmGain;
+            setTimeout(() => { try { g.disconnect(); } catch (e) { } }, 300);
+            this.bgmGain = null;
         }
     }
 
