@@ -45,7 +45,6 @@ class Board {
             this.piece.move(p);
         } else {
             this.freeze();
-            this.clearLines();
             if (this.piece.y === 0) {
                 // Game Over
                 return false;

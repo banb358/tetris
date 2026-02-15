@@ -366,8 +366,8 @@ class Game {
         this.time.level = Math.max(100, 1000 - (this.level - 1) * 100); // 速度を標準的な変化に戻す
         this.updateUI();
 
-        // Game Clear Condition: Level 2 (たった5ラインでクリア！)
-        if (this.level >= 2) {
+        // Game Clear Condition: 5ライン消去でクリア！
+        if (this.lines >= 5) {
             this.gameWin();
         }
     }
