@@ -10,6 +10,15 @@
 
 <body>
     <div class="container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="overlay">
+            <div class="overlay-content">
+                <h1 class="logo">CYBER<br>TETRIS</h1>
+                <p class="tagline">PRESS START TO PLAY</p>
+                <button id="start-btn" class="primary-btn">START GAME</button>
+            </div>
+        </div>
+
         <div class="game-wrapper">
             <div class="side-panel left">
                 <div class="panel-box score-box">
@@ -20,10 +29,6 @@
                     <h2>LEVEL</h2>
                     <div id="level">1</div>
                 </div>
-                <div class="panel-box lines-box">
-                    <h2>LINES</h2>
-                    <div id="lines">0</div>
-                </div>
             </div>
 
             <div class="main-canvas">
@@ -31,7 +36,7 @@
                 <div id="game-over" class="overlay hidden">
                     <div class="overlay-content">
                         <h1>GAME OVER</h1>
-                        <button id="restart-btn">RETRY</button>
+                        <button id="restart-btn" class="primary-btn">RETRY</button>
                     </div>
                 </div>
             </div>
@@ -41,14 +46,9 @@
                     <h2>NEXT</h2>
                     <canvas id="next" width="100" height="100"></canvas>
                 </div>
-                <div class="controls pc-only">
-                    <h3>CONTROLS</h3>
-                    <ul>
-                        <li><span>←→</span> Move</li>
-                        <li><span>↑</span> Rotate</li>
-                        <li><span>↓</span> Soft Drop</li>
-                        <li><span>Space</span> Hard Drop</li>
-                    </ul>
+                <div class="panel-box lines-box">
+                    <h2>LINES</h2>
+                    <div id="lines">0</div>
                 </div>
             </div>
         </div>

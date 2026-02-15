@@ -16,6 +16,9 @@ class Game {
         this.lines = 0;
         this.level = 1;
 
+        // Sound System (Web Audio API)
+        this.audioCtx = null;
+
         this.init();
     }
 
@@ -33,6 +36,62 @@ class Game {
         this.addEventListeners();
     }
 
+    initAudio() {
+        if (!this.audioCtx) {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    playSE(type) {
+        if (!this.audioCtx) return;
+
+        const oscillator = this.audioCtx.createOscillator();
+        const gainNode = this.audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioCtx.destination);
+
+        const now = this.audioCtx.currentTime;
+
+        switch (type) {
+            case 'move':
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(150, now);
+                oscillator.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+                gainNode.gain.setValueAtTime(0.05, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
+                break;
+            case 'rotate':
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(300, now);
+                oscillator.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                gainNode.gain.setValueAtTime(0.05, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
+                break;
+            case 'clear':
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, now);
+                oscillator.frequency.exponentialRampToValueAtTime(880, now + 0.2);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                oscillator.start(now);
+                oscillator.stop(now + 0.2);
+                break;
+            case 'gameOver':
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(200, now);
+                oscillator.frequency.exponentialRampToValueAtTime(50, now + 0.5);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                oscillator.start(now);
+                oscillator.stop(now + 0.5);
+                break;
+        }
+    }
+
     addEventListeners() {
         document.addEventListener('keydown', event => {
             if (event.keyCode === 27) { // ESC to pause
@@ -48,26 +107,41 @@ class Game {
                             this.score += POINTS.HARD_DROP;
                             p = this.moves[KEY.DOWN](this.board.piece);
                         }
+                        this.playSE('move');
                     } else if (this.board.valid(p)) {
                         this.board.piece.move(p);
                         if (event.key === KEY.DOWN) {
                             this.score += POINTS.SOFT_DROP;
                         }
+                        this.playSE('move');
                     }
                 } else if (event.key === KEY.UP) {
                     event.preventDefault();
                     this.board.rotate(this.board.piece);
+                    this.playSE('rotate');
                 }
                 this.draw();
                 this.updateUI();
             }
         });
 
-        document.getElementById('restart-btn').addEventListener('click', () => {
-            this.reset();
-            this.play();
-            document.getElementById('game-over').classList.add('hidden');
-        });
+        const startBtn = document.getElementById('start-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                this.initAudio();
+                this.play();
+                document.getElementById('start-screen').classList.add('hidden');
+            });
+        }
+
+        const restartBtn = document.getElementById('restart-btn');
+        if (restartBtn) {
+            restartBtn.addEventListener('click', () => {
+                this.reset();
+                this.play();
+                document.getElementById('game-over').classList.add('hidden');
+            });
+        }
 
         // Touch Controls
         const handleMove = (key) => {
@@ -78,6 +152,7 @@ class Game {
                 if (key === KEY.DOWN) {
                     this.score += POINTS.SOFT_DROP;
                 }
+                this.playSE('move');
                 this.draw();
                 this.updateUI();
             }
@@ -86,6 +161,7 @@ class Game {
         const handleRotate = () => {
             if (!this.requestId) return;
             this.board.rotate(this.board.piece);
+            this.playSE('rotate');
             this.draw();
             this.updateUI();
         };
@@ -98,6 +174,7 @@ class Game {
                 this.score += POINTS.HARD_DROP;
                 p = this.moves[KEY.DOWN](this.board.piece);
             }
+            this.playSE('move');
             this.draw();
             this.updateUI();
         };
@@ -141,6 +218,7 @@ class Game {
             // Check for line clears and update score
             const clearedLines = this.board.clearLines();
             if (clearedLines > 0) {
+                this.playSE('clear');
                 this.updateScore(clearedLines);
             }
         }
@@ -179,6 +257,7 @@ class Game {
     gameOver() {
         cancelAnimationFrame(this.requestId);
         this.requestId = null;
+        this.playSE('gameOver');
         const gameOverEl = document.getElementById('game-over');
         if (gameOverEl) gameOverEl.classList.remove('hidden');
     }
