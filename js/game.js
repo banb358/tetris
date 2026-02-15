@@ -180,6 +180,21 @@ class Game {
                 oscillator.start(now);
                 oscillator.stop(now + 0.1);
                 break;
+            case 'win':
+                // Simple Victory Fanfare
+                [440, 554.37, 659.25, 880].forEach((f, i) => {
+                    const osc = this.audioCtx.createOscillator();
+                    const g = this.audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(f, now + i * 0.1);
+                    g.gain.setValueAtTime(0.3, now + i * 0.1);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.1);
+                    osc.connect(g);
+                    g.connect(this.audioCtx.destination);
+                    osc.start(now + i * 0.1);
+                    osc.stop(now + i * 0.1 + 0.1);
+                });
+                break;
         }
     }
 
@@ -236,6 +251,17 @@ class Game {
                 this.playBGM();
                 this.play();
                 document.getElementById('game-over').classList.add('hidden');
+            });
+        }
+
+        const winBtn = document.getElementById('win-btn');
+        if (winBtn) {
+            winBtn.addEventListener('click', () => {
+                this.initAudio();
+                this.playSE('start');
+                this.playBGM();
+                this.play();
+                document.getElementById('game-clear').classList.add('hidden');
             });
         }
 
@@ -339,6 +365,11 @@ class Game {
         this.level = Math.floor(this.lines / 10) + 1;
         this.time.level = Math.max(100, 1000 - (this.level - 1) * 100);
         this.updateUI();
+
+        // Game Clear Condition
+        if (this.level >= 10) {
+            this.gameWin();
+        }
     }
 
     updateUI() {
@@ -357,6 +388,15 @@ class Game {
         this.playSE('gameOver');
         const gameOverEl = document.getElementById('game-over');
         if (gameOverEl) gameOverEl.classList.remove('hidden');
+    }
+
+    gameWin() {
+        cancelAnimationFrame(this.requestId);
+        this.requestId = null;
+        this.stopBGM();
+        this.playSE('win');
+        const winEl = document.getElementById('game-clear');
+        if (winEl) winEl.classList.remove('hidden');
     }
 
     pause() {
