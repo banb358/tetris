@@ -54,27 +54,23 @@ class Game {
         // BGM logic
         this.bgmGain = this.audioCtx.createGain();
         this.bgmGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
-        this.bgmGain.gain.linearRampToValueAtTime(0.05, this.audioCtx.currentTime + 1); // Increased slightly
+        this.bgmGain.gain.linearRampToValueAtTime(0.04, this.audioCtx.currentTime + 2);
         this.bgmGain.connect(this.audioCtx.destination);
 
-        // Simple Cyber Drone
+        // Cyber Drone - More audible frequencies and type
         const osc = this.audioCtx.createOscillator();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(55, this.audioCtx.currentTime);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(110, this.audioCtx.currentTime); // A2
 
-        const lfo = this.audioCtx.createOscillator();
-        lfo.type = 'sine';
-        lfo.frequency.setValueAtTime(0.5, this.audioCtx.currentTime);
-        const lfoGain = this.audioCtx.createGain();
-        lfoGain.gain.setValueAtTime(2, this.audioCtx.currentTime);
-        lfo.connect(lfoGain);
-        lfoGain.connect(osc.frequency);
+        const filter = this.audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(400, this.audioCtx.currentTime);
 
-        osc.connect(this.bgmGain);
+        osc.connect(filter);
+        filter.connect(this.bgmGain);
         osc.start();
-        lfo.start();
         this.bgmOscillator = osc;
-        console.log('BGM Started');
+        console.log('Cyber BGM Started');
     }
 
     stopBGM() {
@@ -83,7 +79,9 @@ class Game {
             const currentOsc = this.bgmOscillator;
             this.bgmOscillator = null;
             setTimeout(() => {
-                if (currentOsc) currentOsc.stop();
+                if (currentOsc) {
+                    try { currentOsc.stop(); } catch (e) { }
+                }
             }, 500);
         }
     }
@@ -140,14 +138,17 @@ class Game {
     }
 
     addEventListeners() {
-        // Start BGM on first interaction
-        const startMusic = () => {
+        // Start BGM on first interaction (including Touch for mobile)
+        const startMusic = (e) => {
+            console.log('Interaction:', e.type);
             this.playBGM();
             document.removeEventListener('click', startMusic);
             document.removeEventListener('keydown', startMusic);
+            document.removeEventListener('touchstart', startMusic);
         };
         document.addEventListener('click', startMusic);
         document.addEventListener('keydown', startMusic);
+        document.addEventListener('touchstart', startMusic);
 
         document.addEventListener('keydown', event => {
             if (event.keyCode === 27) { // ESC to pause
