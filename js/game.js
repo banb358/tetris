@@ -20,6 +20,7 @@ class Game {
         this.audioCtx = null;
         this.bgmOscillator = null;
         this.bgmGain = null;
+        this.bgmInterval = null;
 
         this.init();
     }
@@ -49,41 +50,59 @@ class Game {
 
     playBGM() {
         this.initAudio();
-        if (this.bgmOscillator) return;
+        if (this.bgmOscillator) this.stopBGM();
 
-        // BGM logic
         this.bgmGain = this.audioCtx.createGain();
         this.bgmGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
-        this.bgmGain.gain.linearRampToValueAtTime(0.04, this.audioCtx.currentTime + 2);
+        this.bgmGain.gain.linearRampToValueAtTime(0.04, this.audioCtx.currentTime + 1);
         this.bgmGain.connect(this.audioCtx.destination);
 
-        // Cyber Drone - More audible frequencies and type
-        const osc = this.audioCtx.createOscillator();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(110, this.audioCtx.currentTime); // A2
+        const playNote = (freq, time, duration) => {
+            const osc = this.audioCtx.createOscillator();
+            const g = this.audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, time);
 
-        const filter = this.audioCtx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(400, this.audioCtx.currentTime);
+            const filter = this.audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(400, time);
 
-        osc.connect(filter);
-        filter.connect(this.bgmGain);
-        osc.start();
-        this.bgmOscillator = osc;
-        console.log('Cyber BGM Started');
+            g.gain.setValueAtTime(0.3, time);
+            g.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+            osc.connect(filter);
+            filter.connect(g);
+            g.connect(this.bgmGain);
+
+            osc.start(time);
+            osc.stop(time + duration);
+        };
+
+        const sequence = () => {
+            const now = this.audioCtx.currentTime;
+            const tempo = 0.5;
+            for (let i = 0; i < 8; i++) {
+                const time = now + i * tempo;
+                const freq = (i % 4 === 0) ? 55 : 110;
+                playNote(freq, time, tempo * 0.8);
+            }
+        };
+
+        sequence();
+        this.bgmInterval = setInterval(sequence, 4000);
+        this.bgmOscillator = true;
+        console.log('Game BGM Started');
     }
 
     stopBGM() {
+        if (this.bgmInterval) {
+            clearInterval(this.bgmInterval);
+            this.bgmInterval = null;
+        }
         if (this.bgmGain) {
             this.bgmGain.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 0.5);
-            const currentOsc = this.bgmOscillator;
-            this.bgmOscillator = null;
-            setTimeout(() => {
-                if (currentOsc) {
-                    try { currentOsc.stop(); } catch (e) { }
-                }
-            }, 500);
         }
+        this.bgmOscillator = false;
     }
 
     playSE(type) {
@@ -138,17 +157,6 @@ class Game {
     }
 
     addEventListeners() {
-        // Start BGM on first interaction (including Touch for mobile)
-        const startMusic = (e) => {
-            console.log('Interaction:', e.type);
-            this.playBGM();
-            document.removeEventListener('click', startMusic);
-            document.removeEventListener('keydown', startMusic);
-            document.removeEventListener('touchstart', startMusic);
-        };
-        document.addEventListener('click', startMusic);
-        document.addEventListener('keydown', startMusic);
-        document.addEventListener('touchstart', startMusic);
 
         document.addEventListener('keydown', event => {
             if (event.keyCode === 27) { // ESC to pause
@@ -185,7 +193,7 @@ class Game {
         const startBtn = document.getElementById('start-btn');
         if (startBtn) {
             startBtn.addEventListener('click', () => {
-                this.stopBGM();
+                this.playBGM();
                 this.play();
                 document.getElementById('start-screen').classList.add('hidden');
             });
@@ -314,6 +322,7 @@ class Game {
     gameOver() {
         cancelAnimationFrame(this.requestId);
         this.requestId = null;
+        this.stopBGM();
         this.playSE('gameOver');
         const gameOverEl = document.getElementById('game-over');
         if (gameOverEl) gameOverEl.classList.remove('hidden');
